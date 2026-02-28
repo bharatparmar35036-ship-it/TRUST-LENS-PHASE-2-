@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrustLens</title>
+  <link rel="stylesheet" href="popup.css" />
+</head>
+
+<body>
+
+  <div class="root">
+
+    <!-- ═══════════════ HEADER ═══════════════ -->
+    <header class="header">
+      <div class="brand">
+        <!-- Shield icon -->
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+          stroke-linecap="round" stroke-linejoin="round">
+          <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7z" />
+          <polyline points="9 12 11 14 15 10" />
+        </svg>
+        TrustLens
+      </div>
+    </header>
+
+    <!-- ═══════════════ IDLE ═══════════════ -->
+    <div class="state-panel fade-panel" id="idlePanel">
+      <div class="state-icon">
+        <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"
+          stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8" />
+          <line x1="21" y1="21" x2="16.65" y2="16.65" />
+        </svg>
+      </div>
+      <p class="state-title">Ready to Analyze</p>
+      <button class="btn-primary btn-analyze-page" id="analyzePageBtn">🔍 Analyze This Page</button>
+      <div class="idle-divider"><span>or</span></div>
+      <p class="state-sub">Select text → right-click → <em>Verify with TrustLens</em></p>
+      <p class="state-shortcut">Keyboard: <kbd>Ctrl+Shift+Y</kbd></p>
+    </div>
+
+    <!-- ═══════════════ LOADING ═══════════════ -->
+    <div class="state-panel fade-panel" id="loadingPanel" style="display:none">
+      <div class="spinner"></div>
+      <p class="state-title">Analyzing…</p>
+      <p class="state-sub" id="loadingText">Sending to detection engines</p>
+    </div>
+
+    <!-- ═══════════════ RESULT ═══════════════ -->
+    <div id="resultPanel" style="display:none">
+
+      <!-- ── SCORE CARD ── -->
+      <section class="score-section">
+
+        <div class="score-number" id="scoreNum">--</div>
+        <div class="score-label">TRUST SCORE</div>
+
+        <div class="bar-row">
+          <div class="bar-track">
+            <div class="bar-fill" id="mainBar"></div>
+          </div>
+          <span class="bar-pct" id="mainPct">--%</span>
+        </div>
+
+        <div class="risk-chip" id="riskChip">
+          <div class="risk-dot" id="riskDot"></div>
+          <div>
+            <div class="risk-label" id="riskLabel">—</div>
+            <div class="risk-hint" id="riskHint">—</div>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ── ANALYZED TEXT PREVIEW ── -->
+      <section class="section analyzed-text-section" id="analyzedTextSection" style="display:none">
+        <div class="section-title">📄 ANALYZED TEXT</div>
+        <div class="analyzed-text-box" id="analyzedTextBox"></div>
+        <div class="analyzed-source" id="analyzedSource"></div>
+      </section>
+
+
+      <section class="section" id="enginesSection">
+        <div class="section-title">DETECTION ENGINES</div>
+
+        <div class="engine-row">
+          <span class="engine-name">Pattern Analysis</span>
+          <div class="bar-track sm">
+            <div class="bar-fill" id="ruleBar"></div>
+          </div>
+          <span class="engine-pct" id="rulePct">--%</span>
+        </div>
+
+        <div class="engine-row">
+          <span class="engine-name">Content AI</span>
+          <div class="bar-track sm">
+            <div class="bar-fill" id="aiBar"></div>
+          </div>
+          <span class="engine-pct" id="aiPct">--%</span>
+        </div>
+
+        <div class="engine-note" id="engineNote">Analysis based on content patterns</div>
+      </section>
+
+      <!-- ── KEY INDICATORS ── -->
+      <section class="section" id="indicatorsSection" style="display:none">
+        <div class="section-title">💡 KEY INDICATORS</div>
+        <ul class="indicators" id="indicatorsList"></ul>
+      </section>
+
+      <!-- ── AI EXPLANATION ── -->
+      <section class="explanation-section" id="explanationSection" style="display:none">
+        <button class="explanation-toggle" id="explanationToggle">
+          <span class="exp-toggle-left">🤖 Why this score?</span>
+          <span class="exp-arrow" id="expArrow">▼</span>
+        </button>
+        <div class="explanation-body" id="explanationBody" style="display:none">
+          <div id="explanationContent"></div>
+        </div>
+      </section>
+
+      <!-- ── CTA ── -->
+      <div class="cta-row">
+        <button class="btn-primary" id="viewReportBtn">View Full Analysis →</button>
+        <button class="btn-secondary" id="reAnalyzeBtn">↺ Re-analyze</button>
+      </div>
+
+    </div>
+
+    <!-- ═══════════════ ERROR ═══════════════ -->
+    <div class="state-panel fade-panel" id="errorPanel" style="display:none">
+      <div class="state-icon error-icon-wrap">⚠</div>
+      <p class="state-title">Connection Issue</p>
+      <p class="state-sub" id="errorMsg">Couldn't reach the analysis server. Is the backend running?</p>
+      <button class="btn-retry" id="retryBtn">Try Again</button>
+    </div>
+
+    <!-- ═══════════════ HISTORY (hidden when empty) ═══════════════ -->
+    <section class="history-section" id="historySection" style="display:none">
+      <div class="section-title">RECENT SCANS</div>
+      <div id="historyList"></div>
+    </section>
+
+    <!-- ═══════════════ FOOTER ═══════════════ -->
+    <footer class="footer">
+      Hybrid AI + Pattern Verification · v4
+    </footer>
+
+  </div>
+
+  <script src="popup.js"></script>
+</body>
+
+</html>

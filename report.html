@@ -1,0 +1,659 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>TrustLens — Full Analysis</title>
+    <style>
+        /* ── tokens ── */
+        :root {
+            --bg: #0f172a;
+            --card: #1e293b;
+            --raised: #263245;
+            --chip: #2d3f58;
+            --bd: rgba(255, 255, 255, 0.07);
+            --bd2: rgba(255, 255, 255, 0.12);
+            --green: #22c55e;
+            --amber: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+            --t1: #f8fafc;
+            --t2: #94a3b8;
+            --t3: #475569;
+        }
+
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--t1);
+            font-family: -apple-system, "Segoe UI", system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh;
+            padding: 0 0 80px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── top nav ── */
+        .topnav {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 14px 40px;
+            background: rgba(15, 23, 42, 0.92);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--bd);
+        }
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 16px;
+            font-weight: 700;
+            color: var(--blue)
+        }
+
+        .brand svg {
+            width: 20px;
+            height: 20px;
+            stroke: var(--blue);
+            flex-shrink: 0
+        }
+
+        .nav-ts {
+            font-size: 11px;
+            color: var(--t3)
+        }
+
+        /* ── page wrapper ── */
+        .page {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 32px 24px
+        }
+
+        /* ── card ── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--bd);
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 20px;
+        }
+
+        .card-head {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 20px;
+            border-bottom: 1px solid var(--bd);
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .1em;
+            color: var(--t3);
+        }
+
+        .card-icon {
+            font-size: 14px
+        }
+
+        .card-body {
+            padding: 20px
+        }
+
+        /* ── summary meta ── */
+        .meta-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 9px 0;
+            border-bottom: 1px solid var(--bd);
+            font-size: 13px;
+        }
+
+        .meta-row:last-child {
+            border: none
+        }
+
+        .meta-k {
+            color: var(--t3);
+            font-weight: 500
+        }
+
+        .meta-v {
+            color: var(--t1);
+            font-weight: 600;
+            text-align: right;
+            max-width: 65%
+        }
+
+        .url-val {
+            color: var(--blue);
+            word-break: break-all;
+            font-size: 12px
+        }
+
+        /* ── score hero card ── */
+        .score-hero-card {
+            background: linear-gradient(135deg, #1e2d45 0%, #1a2540 100%);
+            border: 1px solid var(--bd2);
+            border-radius: 12px;
+            padding: 28px 28px 20px;
+            margin-bottom: 20px;
+        }
+
+        .score-row {
+            display: flex;
+            align-items: center;
+            gap: 24px;
+            margin-bottom: 16px
+        }
+
+        .score-num {
+            font-size: 80px;
+            font-weight: 700;
+            line-height: 1;
+            letter-spacing: -4px;
+            font-variant-numeric: tabular-nums
+        }
+
+        .score-meta {
+            flex: 1
+        }
+
+        .score-label {
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: .12em;
+            text-transform: uppercase;
+            color: var(--t3);
+            margin-bottom: 10px
+        }
+
+        .verdict-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid;
+            font-size: 13px;
+            font-weight: 600;
+            margin-bottom: 6px;
+        }
+
+        .score-pct-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 12px;
+            margin-top: 8px;
+            color: var(--t3)
+        }
+
+        /* ── bars ── */
+        .bar-wrap {
+            background: var(--raised);
+            border-radius: 100px;
+            overflow: hidden;
+            width: 100%;
+            margin: 4px 0
+        }
+
+        .bar-inner {
+            height: 100%;
+            border-radius: 100px;
+            transition: width .9s cubic-bezier(.25, .46, .45, .94)
+        }
+
+        /* ── engine block ── */
+        .engine-block {
+            padding: 4px 0
+        }
+
+        .engine-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px
+        }
+
+        .eng-name-big {
+            font-size: 15px;
+            font-weight: 600;
+            color: var(--t1)
+        }
+
+        .eng-score-big {
+            font-size: 22px;
+            font-weight: 700
+        }
+
+        .engine-divider {
+            border-top: 1px solid var(--bd);
+            margin: 20px 0
+        }
+
+        .sub-metrics {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px
+        }
+
+        .sub-row {
+            display: grid;
+            grid-template-columns: 160px 1fr 44px;
+            align-items: center;
+            gap: 10px
+        }
+
+        .sub-label {
+            font-size: 12px;
+            color: var(--t2)
+        }
+
+        .sub-pct {
+            font-size: 12px;
+            font-weight: 700;
+            text-align: right
+        }
+
+        /* ── formula box ── */
+        .formula-box {
+            background: var(--raised);
+            border: 1px solid var(--bd2);
+            border-radius: 10px;
+            padding: 18px 20px;
+            margin-bottom: 20px;
+        }
+
+        .formula-title {
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            color: var(--t3);
+            margin-bottom: 12px
+        }
+
+        .formula {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            font-size: 15px;
+            margin-bottom: 10px;
+        }
+
+        .f-part {
+            color: var(--t2);
+            font-size: 14px
+        }
+
+        .f-val {
+            font-weight: 700;
+            color: var(--t1)
+        }
+
+        .f-op {
+            color: var(--t3);
+            font-size: 18px;
+            font-weight: 300
+        }
+
+        .f-result {
+            font-size: 26px;
+            font-weight: 700;
+            margin-left: 4px
+        }
+
+        .formula-note {
+            font-size: 11px;
+            color: var(--t3);
+            font-style: italic
+        }
+
+        /* ── verdict summary ── */
+        .verdict-summary {
+            margin-bottom: 16px
+        }
+
+        .vs-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 8px 0;
+            border-bottom: 1px solid var(--bd);
+            font-size: 13px
+        }
+
+        .vs-row:last-child {
+            border: none
+        }
+
+        .vs-k {
+            color: var(--t3)
+        }
+
+        .vs-v {
+            font-weight: 700;
+            color: var(--t1)
+        }
+
+        .recommendation {
+            display: flex;
+            gap: 12px;
+            align-items: flex-start;
+            background: var(--raised);
+            border-radius: 8px;
+            padding: 14px 16px;
+        }
+
+        .rec-icon {
+            font-size: 18px;
+            flex-shrink: 0;
+            margin-top: 1px
+        }
+
+        .recommendation p {
+            font-size: 13px;
+            color: var(--t2);
+            line-height: 1.6
+        }
+
+        /* ── indicators ── */
+        .ind-list {
+            list-style: none;
+            display: flex;
+            flex-direction: column;
+            gap: 10px
+        }
+
+        .ind-list li {
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+            font-size: 13px;
+            line-height: 1.5
+        }
+
+        .ind-icon {
+            font-size: 15px;
+            flex-shrink: 0;
+            margin-top: 1px
+        }
+
+        .ind-pos {
+            color: var(--t1)
+        }
+
+        .ind-pos .ind-icon {
+            color: var(--green)
+        }
+
+        .ind-warn {
+            color: var(--t2)
+        }
+
+        .ind-warn .ind-icon {
+            color: var(--amber)
+        }
+
+        /* ── ai explanation section titles ── */
+        .exp-rpt-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .09em;
+            color: var(--t3);
+            margin-bottom: 8px;
+        }
+
+        /* ── text preview ── */
+
+        .text-preview {
+            font-size: 14px;
+            color: var(--t2);
+            line-height: 1.75;
+            background: var(--raised);
+            border-radius: 8px;
+            padding: 16px;
+            font-style: italic;
+        }
+
+        .text-full {
+            font-size: 13px;
+            color: var(--t2);
+            line-height: 1.75;
+            background: var(--raised);
+            border-radius: 8px;
+            padding: 16px;
+            max-height: 320px;
+            overflow-y: auto;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .btn-expand {
+            margin-top: 10px;
+            background: none;
+            border: 1px solid var(--bd2);
+            border-radius: 6px;
+            padding: 6px 14px;
+            font-size: 12px;
+            color: var(--t2);
+            cursor: pointer;
+            font-family: inherit;
+            transition: background .2s, color .2s;
+        }
+
+        .btn-expand:hover {
+            background: var(--raised);
+            color: var(--t1)
+        }
+
+        /* ── actions bar ── */
+        .actions-bar {
+            display: flex;
+            gap: 12px;
+            margin-top: 8px
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 11px 22px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+            transition: filter .2s, transform .15s;
+        }
+
+        .btn-primary {
+            background: var(--blue);
+            color: #fff
+        }
+
+        .btn-primary:hover {
+            filter: brightness(1.15)
+        }
+
+        .btn-secondary {
+            background: var(--raised);
+            color: var(--t1);
+            border: 1px solid var(--bd2)
+        }
+
+        .btn-secondary:hover {
+            background: var(--chip)
+        }
+
+        .btn:active {
+            transform: scale(.97)
+        }
+
+        /* ── colour helpers ── */
+        .c-green {
+            color: var(--green)
+        }
+
+        .c-amber {
+            color: var(--amber)
+        }
+
+        .c-red {
+            color: var(--red)
+        }
+
+        /* ── empty state ── */
+        .empty-state {
+            text-align: center;
+            padding: 80px 24px;
+            color: var(--t3)
+        }
+
+        .empty-icon {
+            font-size: 40px;
+            margin-bottom: 16px
+        }
+
+        .empty-state h2 {
+            font-size: 20px;
+            color: var(--t2);
+            margin-bottom: 8px;
+            font-weight: 600
+        }
+
+        .empty-state p {
+            font-size: 14px;
+            color: var(--t3);
+            max-width: 360px;
+            margin: 0 auto
+        }
+
+        /* ── toast ── */
+        .toast {
+            position: fixed;
+            bottom: 28px;
+            left: 50%;
+            transform: translateX(-50%) translateY(10px);
+            background: var(--chip);
+            color: var(--t1);
+            font-size: 12px;
+            font-weight: 600;
+            padding: 9px 20px;
+            border-radius: 20px;
+            border: 1px solid var(--bd2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .2s, transform .2s;
+            font-family: inherit;
+            z-index: 9999;
+            white-space: nowrap;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0)
+        }
+
+        /* ── animations ── */
+        .card,
+        .score-hero-card,
+        .actions-bar {
+            animation: fadeUp .3s ease both
+        }
+
+        .card:nth-child(2) {
+            animation-delay: .05s
+        }
+
+        .card:nth-child(3) {
+            animation-delay: .10s
+        }
+
+        .card:nth-child(4) {
+            animation-delay: .15s
+        }
+
+        .card:nth-child(5) {
+            animation-delay: .20s
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px)
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0)
+            }
+        }
+
+        /* ── responsive ── */
+        @media(max-width:600px) {
+            .topnav {
+                padding: 12px 16px
+            }
+
+            .page {
+                padding: 20px 14px
+            }
+
+            .score-num {
+                font-size: 56px
+            }
+
+            .score-row {
+                gap: 14px
+            }
+
+            .sub-row {
+                grid-template-columns: 130px 1fr 38px
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- sticky nav -->
+    <nav class="topnav">
+        <div class="brand">
+            <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 2L3 7v5c0 5.25 3.75 10.15 9 11.35C17.25 22.15 21 17.25 21 12V7z" />
+                <polyline points="9 12 11 14 15 10" />
+            </svg>
+            TrustLens — Full Analysis
+        </div>
+        <div class="nav-ts" id="ts"></div>
+    </nav>
+
+    <div class="page">
+        <!-- all sections injected here by report.js -->
+        <div id="main"></div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+    <script src="report.js"></script>
+</body>
+
+</html>
